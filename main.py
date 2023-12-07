@@ -59,6 +59,11 @@ class VoiceCommands:
             if "schließe" in recognized or "zu" in recognized:
                 requests.get("http://192.168.1.10/closedoor")
                 voice_recognition.clear_recognized()
+        
+        # Check if the light is the target
+        elif "licht" in recognized:
+            os.system("irsend SEND_ONCE RGBLED ON")
+            voice_recognition.clear_recognized()
 
 def main():
     voice_recognition = VoiceRecognition()

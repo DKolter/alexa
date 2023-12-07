@@ -44,6 +44,21 @@ class VoiceRecognition:
         self.paragraph_buffer = ""
 
 class VoiceCommands:
+    def __init__(self):
+        self.light_colors = {
+            "hell": "BRIGHTER",
+            "heller": "BRIGHTER",
+            "dunkel": "DARKER",
+            "dunkler": "DARKER",
+            "grün": "GREEN",
+            "rot": "RED",
+            "orange": "ORANGE",
+            "weiß": "WHITE",
+            "pink": "PINK",
+            "gelb": "YELLOW",
+            "blau": "BLUE",
+        }
+
     def execute(self, voice_recognition):
         recognized = voice_recognition.get_recognized()
         
@@ -63,7 +78,13 @@ class VoiceCommands:
         
         # Check if the light is the target
         elif "licht" in recognized:
-            os.system("irsend SEND_ONCE RGBLED ON")
+            for color in self.light_colors:
+                if color in recognized:
+                    os.system("irsend SEND_ONCE RGBLED " + self.light_colors[color])
+                    voice_recognition.clear_recognized()
+                    return
+
+            os.system("irsend SEND_ONCE RGBLED TOGGLE")
             voice_recognition.clear_recognized()
 
 def main():

@@ -32,6 +32,7 @@ class VoiceRecognition:
             if result != "":
                 self.silence_time = time.time()
                 self.paragraph_buffer += result + " "
+                print(self.paragraph_buffer)
                 
         if time.time() - self.silence_time > SILENCE_DETECTION:
             self.silence_time = time.time()
@@ -63,7 +64,7 @@ class VoiceCommands:
         recognized = voice_recognition.get_recognized()
         
         # Only execute commands if spoken to
-        if "bernd" not in recognized:
+        if "alexa" not in recognized:
             return
 
         # Check if the door is the target
@@ -77,7 +78,7 @@ class VoiceCommands:
                 voice_recognition.clear_recognized()
         
         # Check if the light is the target
-        elif "licht" in recognized:
+        elif "licht" in recognized or "nicht" in recognized:
             for color in self.light_colors:
                 if color in recognized:
                     os.system("irsend SEND_ONCE RGBLED " + self.light_colors[color])

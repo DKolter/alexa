@@ -3,6 +3,7 @@ import pyaudio
 import json
 import time
 import requests
+import os
 
 MODEL_PATH = "vosk-model-small-de-0.15"
 SILENCE_DETECTION = 0.3

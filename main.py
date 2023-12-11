@@ -7,11 +7,15 @@ import os
 
 MODEL_PATH = "vosk-model-small-de-0.15"
 SILENCE_DETECTION = 0.3
+WORDS = '["alexa", "tür", "auf", "zu", "öffne", "öffnen", "schließe",\
+         "schließen", "licht", "an", "aus", "hell", "dunkel",\
+         "grün", "rot", "blau", "gelb", "lila", "pink", "weiß",\
+         "orange"]'
 
 class VoiceRecognition:
     def __init__(self):
         self.model = Model(MODEL_PATH)
-        self.recognizer = KaldiRecognizer(self.model, 16000)
+        self.recognizer = KaldiRecognizer(self.model, 16000, WORDS)
         self.mic = pyaudio.PyAudio()
         self.stream = self.mic.open(
             format=pyaudio.paInt16, 
@@ -47,10 +51,6 @@ class VoiceRecognition:
 class VoiceCommands:
     def __init__(self):
         self.light_colors = {
-            "hell": "BRIGHTER",
-            "heller": "BRIGHTER",
-            "dunkel": "DARKER",
-            "dunkler": "DARKER",
             "grün": "GREEN",
             "rot": "RED",
             "orange": "ORANGE",
@@ -58,6 +58,7 @@ class VoiceCommands:
             "pink": "PINK",
             "gelb": "YELLOW",
             "blau": "BLUE",
+            "lila": "PURPLE",
         }
 
     def execute(self, voice_recognition):
@@ -78,7 +79,16 @@ class VoiceCommands:
                 voice_recognition.clear_recognized()
         
         # Check if the light is the target
-        elif "licht" in recognized or "nicht" in recognized:
+        elif "licht" in recognized:
+            if "hell" in recognized:
+                for _ in range(7):
+                    os.system("irsend SEND_ONCE RGBLED BRIGHTER")
+                return
+            elif "dunkel" in recognized:
+                for _ in range(7):
+                    os.system("irsend SEND_ONCE RGBLED DARKER")
+                return
+
             for color in self.light_colors:
                 if color in recognized:
                     os.system("irsend SEND_ONCE RGBLED " + self.light_colors[color])

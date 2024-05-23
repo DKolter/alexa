@@ -5,7 +5,7 @@ import time
 import requests
 import os
 
-MODEL_PATH = "vosk-model-small-de-0.15"
+MODEL_PATH = "/home/dkolter/Desktop/alexa/vosk-model-small-de-0.15"
 SILENCE_DETECTION = 0.3
 WORDS = '["alexa", "tür", "auf", "zu", "öffne", "öffnen", "schließe",\
          "schließen", "licht", "an", "aus", "hell", "dunkel",\
@@ -22,7 +22,7 @@ class VoiceRecognition:
             channels=1, 
             rate=16000, 
             input=True, 
-            frames_per_buffer=8192
+            frames_per_buffer=8192,
         )
         self.stream.start_stream()
         self.silence_time = time.time()
@@ -61,6 +61,21 @@ class VoiceCommands:
             "lila": "PURPLE",
         }
 
+    def execute_light_command(self, command):
+        try:
+            requests.get(f"http://192.168.1.114/light/{command}")
+        except Exception:
+            pass
+        
+        if command == "BRIGHTER":
+            for _ in range(7):
+                os.system("irsend SEND_ONCE RGBLED BRIGHTER")
+        elif command == "DARKER":
+            for _ in range(7):
+                os.system("irsend SEND_ONCE RGBLED DARKER")
+        else:
+            os.system(f"irsend SEND_ONCE RGBLED {command}")
+
     def execute(self, voice_recognition):
         recognized = voice_recognition.get_recognized()
         
@@ -71,31 +86,35 @@ class VoiceCommands:
         # Check if the door is the target
         if "tür" in recognized:
             if "öffne" in recognized or "auf" in recognized:
-                requests.get("http://192.168.1.10/opendoor")
+                try:
+                    requests.get("http://192.168.1.108/opendoor")
+                except Exception:
+                    pass
                 voice_recognition.clear_recognized()
 
             if "schließe" in recognized or "zu" in recognized:
-                requests.get("http://192.168.1.10/closedoor")
+                try:
+                    requests.get("http://192.168.1.108/closedoor")
+                except Exception:
+                    pass
                 voice_recognition.clear_recognized()
         
         # Check if the light is the target
         elif "licht" in recognized:
             if "hell" in recognized:
-                for _ in range(7):
-                    os.system("irsend SEND_ONCE RGBLED BRIGHTER")
+                self.execute_light_command("BRIGHTER")
                 return
             elif "dunkel" in recognized:
-                for _ in range(7):
-                    os.system("irsend SEND_ONCE RGBLED DARKER")
+                self.execute_light_command("DARKER")
                 return
 
             for color in self.light_colors:
                 if color in recognized:
-                    os.system("irsend SEND_ONCE RGBLED " + self.light_colors[color])
+                    self.execute_light_command(self.light_colors[color])
                     voice_recognition.clear_recognized()
                     return
 
-            os.system("irsend SEND_ONCE RGBLED TOGGLE")
+            self.execute_light_command("TOGGLE")
             voice_recognition.clear_recognized()
 
 def main():

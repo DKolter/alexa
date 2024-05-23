@@ -29,7 +29,7 @@ class VoiceRecognition:
         self.paragraph_buffer = ""
 
     def recognize(self):
-        data = self.stream.read(8192)
+        data = self.stream.read(8192, exception_on_overflow = False)
         if self.recognizer.AcceptWaveform(data):
             result = json.loads(self.recognizer.Result())
             result = result["text"].strip()
